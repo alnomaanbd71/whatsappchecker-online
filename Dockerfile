@@ -1,28 +1,20 @@
-FROM python:3.10-slim
+# Dockerfile
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget gnupg curl unzip \
-    fonts-liberation libnss3 libxss1 libxi6 libx11-xcb1 \
-    libxcomposite1 libxcursor1 libxdamage1 libxrandr2 \
-    libxtst6 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libdrm2 libpangocairo-1.0-0 libcairo2 \
-    xdg-utils xvfb x11-xauth \
-    && rm -rf /var/lib/apt/lists/*
+# 1. Use Playwright’s Python image (includes headless Chromium & libs)
+FROM mcr.microsoft.com/playwright/python:1.44.0-focal
 
-# Set display environment variable for headless operation
-ENV DISPLAY=:99
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy source code
-COPY . /app
+# 2. Set working directory
 WORKDIR /app
 
-# Expose default port (change if needed)
-EXPOSE 8000
+# 3. Copy application code
+COPY . /app
 
-# Start FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 4. Install Python dependencies
+RUN pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
+# 5. Expose your app’s port
+EXPOSE 5000
+
+# 6. Start the Flask/FastAPI app
+CMD ["python", "main.py"]
