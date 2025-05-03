@@ -1,10 +1,19 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import uuid
 from worker import check_whatsapp_numbers
 
 app = FastAPI()
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/api/check")
 async def check(file: UploadFile = File(...)):
@@ -16,4 +25,8 @@ async def check(file: UploadFile = File(...)):
 
 @app.get("/download/{task_id}")
 def download(task_id: str):
-    return FileResponse(path=f"/tmp/{task_id}.xlsx", filename="result.xlsx")
+    return FileResponse(
+        path=f"/tmp/{task_id}.xlsx",
+        filename="result.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
