@@ -1,7 +1,0 @@
-fastapi
-pandas
-uvicorn
-selenium
-openpyxl
-webdriver-manager
-python-multipart
