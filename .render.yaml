@@ -2,6 +2,6 @@ services:
   - type: web
     name: whatsapp-backend
     env: docker
-    repo: https://github.com/YOUR_USERNAME/whatsappchecker-online
-    dockerContext: backend
+    repo: https://github.com/alnomaanbd71/whatsappchecker-online
+    dockerContext: .
     branch: main
