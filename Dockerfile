@@ -12,13 +12,24 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver (simplified version)
-RUN CHROME_MAJOR_VERSION=$(google-chrome --version | sed 's/.* \([0-9]*\).\([0-9]*\).\([0-9]*\).*/\1/') \
+# Install ChromeDriver with robust version detection
+RUN apt-get update && apt-get install -y jq \
+    && CHROME_VERSION=$(google-chrome --version | awk '{print $3}') \
+    && CHROME_MAJOR_VERSION=${CHROME_VERSION%%.*} \
     && CHROME_DRIVER_VERSION=$(curl -sSL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR_VERSION") \
-    && curl -sSL "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" -o chromedriver.zip \
+    && echo "Installing ChromeDriver $CHROME_DRIVER_VERSION for Chrome $CHROME_VERSION" \
+    && curl -sSL --retry 3 --retry-delay 5 "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" -o chromedriver.zip \
     && unzip -q chromedriver.zip \
     && mv chromedriver /usr/local/bin/ \
-    && rm chromedriver.zip
+    && rm chromedriver.zip \
+    && apt-get purge -y jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install essential runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libgconf-2-4 \
+    fonts-freefont-ttf \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
