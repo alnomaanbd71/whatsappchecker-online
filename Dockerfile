@@ -9,14 +9,14 @@ RUN apt-get update && apt-get install -y \
     && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf \
+    && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | sed 's/.* \([0-9.]\+\) .*/\1/') \
-    && CHROME_DRIVER_VERSION=$(curl -sSL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") \
+# Install ChromeDriver (simplified version)
+RUN CHROME_MAJOR_VERSION=$(google-chrome --version | sed 's/.* \([0-9]*\).\([0-9]*\).\([0-9]*\).*/\1/') \
+    && CHROME_DRIVER_VERSION=$(curl -sSL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR_VERSION") \
     && curl -sSL "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" -o chromedriver.zip \
-    && unzip chromedriver.zip \
+    && unzip -q chromedriver.zip \
     && mv chromedriver /usr/local/bin/ \
     && rm chromedriver.zip
 
