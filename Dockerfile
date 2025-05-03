@@ -1,20 +1,37 @@
-# Dockerfile
+# Use official Python image
+FROM python:3.9-slim-bullseye
 
-# 1) Use Playwright’s Python image (bundles Python, headless Chromium & all deps)
-FROM mcr.microsoft.com/playwright/python:latest
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    unzip \
+    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf \
+    && rm -rf /var/lib/apt/lists/*
 
-# 2) Set working directory
+# Install ChromeDriver
+RUN CHROME_VERSION=$(google-chrome --version | sed 's/.* \([0-9.]\+\) .*/\1/') \
+    && CHROME_DRIVER_VERSION=$(curl -sSL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") \
+    && curl -sSL "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" -o chromedriver.zip \
+    && unzip chromedriver.zip \
+    && mv chromedriver /usr/local/bin/ \
+    && rm chromedriver.zip
+
+# Set working directory
 WORKDIR /app
 
-# 3) Copy your application code into the container
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY . .
 
-# 4) Upgrade pip & install Python dependencies
-RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+# Expose port
+EXPOSE 8000
 
-# 5) Expose the port your app listens on (Render will bind $PORT to this)
-EXPOSE 5000
-
-# 6) Run your Flask/FastAPI app; ensure main.py binds to $PORT
-CMD ["python", "main.py"]
+# Start command
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
